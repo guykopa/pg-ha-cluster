@@ -1,6 +1,6 @@
 # Phase 0 — Socle Docker Swarm
 
-> Statut : **en cours**
+> Statut : **fait ✅**
 > Pré-requis des phases suivantes (etcd/Patroni, proxy, monitoring).
 
 ## Objectifs

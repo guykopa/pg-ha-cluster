@@ -7,8 +7,9 @@
 
 - Reproduire l'ensemble du cluster (Phases 0-2 + 5) via des **rôles Ansible
   idempotents**, au lieu de scripts.
-- Gérer les secrets via **`ansible-vault`** (conforme `CLAUDE.md` §4/§7),
-  remplaçant les valeurs aléatoires de dev.
+- Gérer les secrets via **`ansible-vault`** (conforme aux conventions de
+  sécurité du projet, `ARCHITECTURE.md` §7), remplaçant les valeurs aléatoires
+  de dev.
 - Concevoir la couche **AWX** (Job/Workflow Templates, Survey).
 
 ## Structure
@@ -32,7 +33,7 @@ ansible/
 └── awx/README.md               # conception AWX
 ```
 
-> Mapping vs le découpage initial de `CLAUDE.md` : les rôles sont **alignés sur
+> Mapping vs le découpage initialement envisagé : les rôles sont **alignés sur
 > les unités de déploiement** (stacks) plutôt que 1 rôle par binaire —
 > `pg_cluster` couvre etcd+patroni, `proxy` couvre haproxy+pgbouncer. Plus DRY
 > (réutilise les stack files déjà validés).
