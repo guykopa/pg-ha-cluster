@@ -1,0 +1,15 @@
+# Local environment files (never commit real secret values)
+.env
+*.env
+
+# Ansible
+*.retry
+ansible/**/vault.yml
+ansible/**/*.vault
+
+# Vagrant (multi-node target, if provisioned locally later)
+.vagrant/
+
+# OS / editor noise
+.DS_Store
+*~
