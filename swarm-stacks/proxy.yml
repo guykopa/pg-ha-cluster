@@ -10,7 +10,7 @@ services:
     image: haproxy:2.9
     networks: [net_data, net_proxy]
     configs:
-      - source: haproxy_cfg
+      - source: haproxy_cfg_v2
         target: /usr/local/etc/haproxy/haproxy.cfg
     ports:
       - "5000:5000"   # write -> leader
@@ -40,7 +40,7 @@ networks:
     external: true
 
 configs:
-  haproxy_cfg:
+  haproxy_cfg_v2:
     file: ../config/haproxy/haproxy.cfg
 
 secrets:

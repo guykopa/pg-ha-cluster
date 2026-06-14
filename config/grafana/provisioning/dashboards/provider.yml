@@ -1,0 +1,11 @@
+# pgquorum -- Grafana dashboard provider (Phase 5).
+apiVersion: 1
+providers:
+  - name: pgquorum
+    orgId: 1
+    folder: pgquorum
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

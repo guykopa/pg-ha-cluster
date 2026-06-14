@@ -1,0 +1,13 @@
+# pgquorum -- Alertmanager configuration (Phase 5).
+# Dev setup: a single catch-all receiver (no external notifier wired). Alerts
+# are visible in the Alertmanager UI (:9093). In production, plug in email /
+# Slack / PagerDuty receivers here and route by severity.
+route:
+  receiver: 'default'
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+
+receivers:
+  - name: 'default'

@@ -1,0 +1,64 @@
+# pgquorum -- Prometheus alert rules (Phase 5).
+groups:
+  - name: pgquorum-ha
+    rules:
+      # No node currently holds the leader role -> the cluster cannot accept
+      # writes. Critical.
+      - alert: PatroniNoLeader
+        expr: count(patroni_primary == 1) == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "No Patroni leader"
+          description: "No node reports patroni_primary=1 for 30s; writes are unavailable."
+
+      # PostgreSQL is down on a node.
+      - alert: PostgresDown
+        expr: patroni_postgres_running == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL down on {{ $labels.name }}"
+          description: "patroni_postgres_running=0 on {{ $labels.name }} for 1m."
+
+      # Fewer than 2 replicas -> redundancy degraded.
+      - alert: NotEnoughReplicas
+        expr: count(patroni_replica == 1) < 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cluster has fewer than 2 replicas"
+
+      # Replication lag (bytes) of a replica behind the leader's WAL position.
+      - alert: ReplicationLagHigh
+        expr: ((scalar(max(patroni_xlog_location)) - patroni_xlog_replayed_location) / 1048576 > 64) and (patroni_replica == 1)
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Replication lag > 64MB on {{ $labels.name }}"
+
+  - name: pgquorum-proxy
+    rules:
+      # HAProxy has no active server in the write backend (no reachable leader).
+      - alert: HAProxyWriteBackendDown
+        expr: haproxy_backend_active_servers{proxy="pg_write"} < 1
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "HAProxy write backend has no active server"
+
+  - name: pgquorum-infra
+    rules:
+      # A Prometheus scrape target is unreachable.
+      - alert: TargetDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Target {{ $labels.job }} / {{ $labels.instance }} is down"

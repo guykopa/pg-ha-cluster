@@ -1,0 +1,117 @@
+# pgquorum -- Monitoring stack (Phase 5a): metrics + alerting + Grafana.
+# Joins net_monitoring (internal), plus net_data/net_proxy where Prometheus
+# and postgres-exporter need to reach the cluster.
+version: "3.8"
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    networks: [net_monitoring, net_data, net_proxy]
+    configs:
+      - { source: prometheus_cfg, target: /etc/prometheus/prometheus.yml }
+      - { source: prometheus_alerts, target: /etc/prometheus/alerts.yml }
+    volumes:
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    deploy:
+      replicas: 1
+      restart_policy: { condition: any }
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    networks: [net_monitoring]
+    configs:
+      - { source: alertmanager_cfg, target: /etc/alertmanager/alertmanager.yml }
+    ports:
+      - "9093:9093"
+    deploy:
+      replicas: 1
+      restart_policy: { condition: any }
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    networks: [net_monitoring]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    secrets:
+      - grafana_admin_password
+    configs:
+      - { source: grafana_datasources, target: /etc/grafana/provisioning/datasources/datasources.yml }
+      - { source: grafana_dash_provider, target: /etc/grafana/provisioning/dashboards/provider.yml }
+      - { source: grafana_dash_overview, target: /var/lib/grafana/dashboards/pgquorum-overview.json }
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    deploy:
+      replicas: 1
+      restart_policy: { condition: any }
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    networks: [net_monitoring]
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    deploy:
+      replicas: 1
+      restart_policy: { condition: any }
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    networks: [net_monitoring]
+    command: ['--docker_only=true', '--housekeeping_interval=10s']
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    deploy:
+      replicas: 1
+      restart_policy: { condition: any }
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.15.0
+    networks: [net_monitoring, net_proxy]
+    # DSN injected at deploy time from the shell env (see 05-deploy-monitoring.sh);
+    # the password is never committed. Points at HAProxy :5000 (always the leader).
+    environment:
+      DATA_SOURCE_NAME: "postgresql://monitoring:${MONITORING_PW}@haproxy:5000/appdb?sslmode=disable"
+    deploy:
+      replicas: 1
+      restart_policy: { condition: any }
+
+networks:
+  net_monitoring: { external: true }
+  net_data: { external: true }
+  net_proxy: { external: true }
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+configs:
+  prometheus_cfg:
+    file: ../config/prometheus/prometheus.yml
+  prometheus_alerts:
+    file: ../config/prometheus/alerts.yml
+  alertmanager_cfg:
+    file: ../config/alertmanager/alertmanager.yml
+  grafana_datasources:
+    file: ../config/grafana/provisioning/datasources/datasources.yml
+  grafana_dash_provider:
+    file: ../config/grafana/provisioning/dashboards/provider.yml
+  grafana_dash_overview:
+    file: ../config/grafana/dashboards/pgquorum-overview.json
+
+secrets:
+  grafana_admin_password:
+    external: true
