@@ -1,0 +1,48 @@
+# pgquorum -- Proxy stack (Phase 2): HAProxy + PgBouncer.
+#
+# Deployed as a separate stack from pg-cluster (layered deployment). It joins
+# the same external overlay networks: net_data (to reach the PostgreSQL nodes)
+# and net_proxy (to serve PgBouncer / applications).
+version: "3.8"
+
+services:
+  haproxy:
+    image: haproxy:2.9
+    networks: [net_data, net_proxy]
+    configs:
+      - source: haproxy_cfg
+        target: /usr/local/etc/haproxy/haproxy.cfg
+    ports:
+      - "5000:5000"   # write -> leader
+      - "5001:5001"   # read  -> replicas
+      - "8404:8404"   # stats UI
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  pgbouncer:
+    image: pgquorum/pgbouncer:1
+    networks: [net_proxy]
+    secrets:
+      - pg_pgbouncer_password
+    ports:
+      - "6432:6432"   # application entrypoint (pooled)
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+networks:
+  net_data:
+    external: true
+  net_proxy:
+    external: true
+
+configs:
+  haproxy_cfg:
+    file: ../config/haproxy/haproxy.cfg
+
+secrets:
+  pg_pgbouncer_password:
+    external: true
