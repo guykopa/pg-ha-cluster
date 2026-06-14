@@ -2,6 +2,9 @@
 .env
 *.env
 
+# Generated dev credentials (docker secrets are the source of truth)
+secrets/
+
 # Ansible
 *.retry
 ansible/**/vault.yml
