@@ -18,3 +18,7 @@ ansible/.vault_pass
 # OS / editor noise
 .DS_Store
 *~
+
+# Internal project docs (not for public repo)
+CLAUDE.md
+ARCHITECTURE.md
