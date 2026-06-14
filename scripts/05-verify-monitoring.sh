@@ -40,5 +40,10 @@ curl -fsS -o /dev/null http://localhost:9090/-/healthy 2>/dev/null && ok "Promet
 curl -fsS -o /dev/null http://localhost:9093/-/healthy 2>/dev/null && ok "Alertmanager healthy" || nok "Alertmanager unhealthy"
 curl -fsS -o /dev/null http://localhost:3000/api/health 2>/dev/null && ok "Grafana healthy" || nok "Grafana unhealthy"
 
+echo "== Logs (Loki / Promtail) =="
+curl -fsS -o /dev/null http://localhost:3100/ready 2>/dev/null && ok "Loki ready" || nok "Loki not ready"
+nsvc="$(curl -s http://localhost:3100/loki/api/v1/label/swarm_service/values 2>/dev/null | python3 -c 'import sys,json; print(len(json.load(sys.stdin).get("data",[])))' 2>/dev/null)"
+[ "${nsvc:-0}" -ge 3 ] && ok "Promtail shipping logs (${nsvc} swarm services in Loki)" || nok "few/no log streams in Loki (${nsvc:-0})"
+
 echo
 echo "(targets détaillés ci-dessus ; le résumat OK/FAIL des jobs fait foi)"

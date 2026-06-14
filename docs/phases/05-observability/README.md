@@ -1,6 +1,6 @@
 # Phase 5 — Observabilité
 
-> Statut : **5a fait ✅** (métriques + alerting + Grafana). 5b (logs Loki/Promtail) à suivre.
+> Statut : **fait ✅** — 5a (métriques + alerting + Grafana) et 5b (logs Loki/Promtail).
 
 ## Objectifs
 
@@ -87,8 +87,29 @@ dans Prometheus `/alerts` **et** dans Alertmanager.
   recréer le config → renommé `haproxy_cfg` → `haproxy_cfg_v2` pour que
   `docker stack deploy` le mette à jour.
 
-## Limites / 5b
+## Logs (5b) — Loki + Promtail
 
-- **Logs** (Loki + Promtail) : phase 5b.
+```
+Promtail (global, docker_sd via /var/run/docker.sock)
+   -> découvre tous les conteneurs, lit leurs logs via l'API Docker
+   -> pousse vers Loki :3100, labels: container, swarm_service, stream
+Grafana -> datasource Loki (provisionnée en 5a) -> exploration des logs
+```
+
+- **Loki** : single-binary, stockage filesystem, rétention 7 j
+  (`config/loki/loki-config.yaml`).
+- **Promtail** : déployé en **`mode: global`** (un shipper par nœud),
+  `docker_sd_configs` via le socket Docker (`config/promtail/promtail-config.yaml`).
+- Validé : logs des **16 conteneurs** présents dans Loki (etcd, pg, haproxy,
+  pgbouncer, stack monitoring) ; exemple lu en direct :
+  `INFO: no action. I am (pg3), the leader with the lock`.
+
+Requête type (Grafana « Explore », datasource Loki) :
+`{swarm_service="pgquorum_pg3"}` ou `{swarm_service=~"pgquorum.*"} |= "error"`.
+
+## Limites / pistes
+
 - Dashboard minimal (overview) ; enrichissable (import de dashboards
-  communautaires Patroni/HAProxy/PgBouncer).
+  communautaires Patroni/HAProxy/PgBouncer, corrélation logs↔métriques).
+- Alertmanager sans notifieur externe (UI seulement) — brancher email/Slack
+  en prod.

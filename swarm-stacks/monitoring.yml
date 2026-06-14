@@ -89,6 +89,33 @@ services:
       replicas: 1
       restart_policy: { condition: any }
 
+  # --- Logs (Phase 5b) ------------------------------------------------------
+  loki:
+    image: grafana/loki:3.1.1
+    networks: [net_monitoring]
+    command: ["-config.file=/etc/loki/loki-config.yaml"]
+    configs:
+      - { source: loki_cfg, target: /etc/loki/loki-config.yaml }
+    volumes:
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    deploy:
+      replicas: 1
+      restart_policy: { condition: any }
+
+  promtail:
+    image: grafana/promtail:3.1.1
+    networks: [net_monitoring]
+    command: ["-config.file=/etc/promtail/promtail-config.yaml"]
+    configs:
+      - { source: promtail_cfg, target: /etc/promtail/promtail-config.yaml }
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      mode: global   # one log shipper per node
+      restart_policy: { condition: any }
+
 networks:
   net_monitoring: { external: true }
   net_data: { external: true }
@@ -97,6 +124,7 @@ networks:
 volumes:
   prometheus_data:
   grafana_data:
+  loki_data:
 
 configs:
   prometheus_cfg:
@@ -111,6 +139,10 @@ configs:
     file: ../config/grafana/provisioning/dashboards/provider.yml
   grafana_dash_overview:
     file: ../config/grafana/dashboards/pgquorum-overview.json
+  loki_cfg:
+    file: ../config/loki/loki-config.yaml
+  promtail_cfg:
+    file: ../config/promtail/promtail-config.yaml
 
 secrets:
   grafana_admin_password:
