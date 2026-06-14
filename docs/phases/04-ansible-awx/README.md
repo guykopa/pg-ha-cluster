@@ -8,7 +8,7 @@
 - Reproduire l'ensemble du cluster (Phases 0-2 + 5) via des **rôles Ansible
   idempotents**, au lieu de scripts.
 - Gérer les secrets via **`ansible-vault`** (conforme aux conventions de
-  sécurité du projet, `ARCHITECTURE.md` §7), remplaçant les valeurs aléatoires
+  sécurité du projet, remplaçant les valeurs aléatoires
   de dev.
 - Concevoir la couche **AWX** (Job/Workflow Templates, Survey).
 

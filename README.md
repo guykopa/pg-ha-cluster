@@ -7,9 +7,9 @@ Cluster **PostgreSQL hautement disponible** sur Docker Swarm : **Patroni + etcd*
 déploiement automatisé via **Ansible**, supervision **Prometheus / Grafana /
 Loki / Alertmanager**.
 
-> Projet DevOps/SRE. Conception détaillée : [`ARCHITECTURE.md`](ARCHITECTURE.md).
+> Projet DevOps/SRE.
 > En local (WSL2) tout tourne en conteneurs sur un Swarm **mono-nœud** ; la
-> cible est un Swarm **3 nœuds** — mêmes artefacts (cf. ARCHITECTURE §1).
+> cible est un Swarm **3 nœuds** — mêmes artefacts, seul le nombre de nœuds change.
 
 ## Stack
 
@@ -89,5 +89,4 @@ Bonus à venir : `pgctl`, CLI de pilotage en architecture hexagonale (TDD).
 
 Aucun secret en clair dans le dépôt : **`docker secret`** (runtime) +
 **`ansible-vault`** (au repos). PgBouncer s'authentifie via `auth_query`
-(SCRAM), sans mot de passe applicatif dans sa config. Détails :
-[`ARCHITECTURE.md` §7](ARCHITECTURE.md).
+(SCRAM), sans mot de passe applicatif dans sa config.

@@ -95,6 +95,6 @@ Résultats détaillés et mesures : voir [`failover-test.md`](./failover-test.md
 ## Limites (dev mono-nœud)
 
 - Failover démontré au niveau **conteneur** (`docker kill`), pas **hôte**
-  (cf. `ARCHITECTURE.md` §10). Le mécanisme Patroni/etcd est identique.
+  . Le mécanisme Patroni/etcd est identique.
 - `watchdog: off` (pas de `/dev/watchdog` en conteneur). Sur hôte réel, le
   watchdog renforce la protection anti split-brain.

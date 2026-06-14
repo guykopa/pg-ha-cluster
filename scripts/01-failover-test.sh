@@ -2,7 +2,7 @@
 #
 # pgquorum -- Phase 1 validation: automatic failover test.
 #
-# Scenario (cf. ARCHITECTURE.md section 6):
+# Scenario:
 #   1. Identify the current leader.
 #   2. Take its node down and KEEP it down (scale the service to 0). This
 #      simulates a sustained host failure -- unlike a bare `docker kill`,

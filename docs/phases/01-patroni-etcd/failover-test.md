@@ -69,7 +69,7 @@ Réplication **asynchrone** → en cas de crash brutal du leader, les dernières
 transactions non encore répliquées peuvent être perdues : **RPO > 0**. Pour
 RPO = 0, activer la réplication **synchrone** (`synchronous_mode`), au prix
 d'une latence d'écriture accrue et d'une dépendance à la disponibilité d'un
-replica synchrone (trade-off documenté dans `ARCHITECTURE.md` §9).
+replica synchrone (trade-off assumé).
 
 ## Reproduire
 

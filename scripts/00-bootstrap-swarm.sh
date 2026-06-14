@@ -14,7 +14,7 @@
 
 set -euo pipefail
 
-# --- Overlay networks (cf. ARCHITECTURE.md section 3) -----------------------
+# --- Overlay networks --------------------------------------------------------
 # net_data       : etcd <-> Patroni/PostgreSQL (replication, leader election)
 # net_proxy      : HAProxy <-> PgBouncer <-> PostgreSQL, app-facing entrypoint
 # net_monitoring : exporters <-> Prometheus, Promtail <-> Loki, ... <-> Grafana

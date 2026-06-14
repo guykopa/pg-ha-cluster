@@ -2,7 +2,7 @@
 # Repo root, relative to ansible/playbooks/site.yml.
 project_root: "{{ playbook_dir }}/../.."
 
-# Overlay networks (cf. ARCHITECTURE.md section 3).
+# Overlay networks.
 overlay_networks:
   - net_data
   - net_proxy

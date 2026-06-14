@@ -84,7 +84,7 @@ re-route uniquement à partir des health-checks Patroni. Mesures :
 
 ## Limites / pistes
 
-- Topologie **PgBouncer → HAProxy** (conforme à `ARCHITECTURE.md` §2/§5) :
-  variante possible HAProxy → PgBouncer par nœud. Documenté comme choix.
-- Pas de TLS entre app/PgBouncer/HAProxy/PostgreSQL (cf. `ARCHITECTURE.md`
-  §10) — amélioration sécurité ultérieure.
+- Topologie **PgBouncer → HAProxy** : variante possible HAProxy → PgBouncer
+  par nœud. Documenté comme choix.
+- Pas de TLS entre app/PgBouncer/HAProxy/PostgreSQL — amélioration sécurité
+  ultérieure.

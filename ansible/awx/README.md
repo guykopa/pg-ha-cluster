@@ -3,7 +3,7 @@
 > **AWX n'est pas déployé** dans l'environnement de dev : il tourne lui-même
 > sur Kubernetes avec sa propre base PostgreSQL et demande plusieurs Gio — non
 > tenable sur ce WSL2 (~3,4 Gio libres, déjà 16 conteneurs). C'est une **limite
-> assumée** (cf. `ARCHITECTURE.md`). Les rôles et le playbook sont néanmoins
+> assumée**. Les rôles et le playbook sont néanmoins
 > **AWX-ready** : il suffit de pointer un AWX existant sur ce repo + l'inventaire.
 
 ## Ce qu'AWX apporterait par-dessus Ansible
@@ -52,8 +52,7 @@ Ces variables surchargent les `group_vars` au lancement.
 
 ### Jobs planifiés
 - **Health-check** périodique (`site.yml --tags pg_cluster --check`).
-- **Backup** quotidien (quand pgBackRest sera ajouté — cf. limites
-  `ARCHITECTURE.md` §10).
+- **Backup** quotidien (quand pgBackRest sera ajouté).
 
 ## Bascule vers AWX (résumé)
 1. Déployer AWX (operator K8s) sur un cluster dédié.

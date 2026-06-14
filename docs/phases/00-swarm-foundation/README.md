@@ -8,8 +8,7 @@
 Poser le socle d'orchestration sur lequel toutes les stacks seront déployées :
 
 1. Un **Swarm actif** (mono-nœud en dev, cf. note ci-dessous).
-2. Les **trois réseaux overlay** qui segmentent les flux (cf. `ARCHITECTURE.md`
-   § 3) :
+2. Les **trois réseaux overlay** qui segmentent les flux  :
    - `net_data` — etcd ↔ Patroni/PostgreSQL (réplication, élection) ;
    - `net_proxy` — HAProxy ↔ PgBouncer ↔ PostgreSQL (entrée applicative) ;
    - `net_monitoring` — exporters ↔ Prometheus, Promtail ↔ Loki, … ↔ Grafana.
@@ -20,8 +19,7 @@ Poser le socle d'orchestration sur lequel toutes les stacks seront déployées :
 En local (WSL2, sans VM), le Swarm est **mono-nœud** et tout tourne en
 conteneurs. Les primitives utilisées ici (réseaux overlay, secrets, `docker
 stack deploy`) sont **identiques** à un Swarm 3 nœuds — seul le nombre de
-nœuds change. Justification complète : `ARCHITECTURE.md` § 1
-(« Environnement de développement ») et § 10 (limites).
+nœuds change.
 
 ## Commandes
 
