@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    name: Lint (yaml / shell / ansible / dockerfiles)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ShellCheck
+        run: shellcheck -S warning scripts/*.sh
+
+      - name: yamllint
+        run: pipx run yamllint -c .yamllint .
+
+      - name: Ansible syntax-check
+        run: |
+          pipx install ansible-core
+          # ansible.cfg references a vault password file; a dummy is enough for
+          # syntax-check (no vaulted vars are decrypted at this stage).
+          echo dummy > ansible/.vault_pass
+          cd ansible && ansible-playbook --syntax-check playbooks/site.yml
+
+      - name: Hadolint (Patroni)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: docker/patroni/Dockerfile
+          failure-threshold: error
+
+      - name: Hadolint (PgBouncer)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: docker/pgbouncer/Dockerfile
+          failure-threshold: error
+
+  build:
+    name: Build images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Patroni image
+        run: docker build -t pgquorum/patroni:16 docker/patroni
+      - name: Build PgBouncer image
+        run: docker build -t pgquorum/pgbouncer:1 docker/pgbouncer
+
+  integration:
+    name: Integration (HA cluster + failover)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Patroni image
+        run: docker build -t pgquorum/patroni:16 docker/patroni
+
+      - name: Bootstrap swarm + overlay networks
+        run: bash scripts/00-bootstrap-swarm.sh
+
+      - name: Deploy PostgreSQL HA cluster (etcd + Patroni)
+        run: bash scripts/01-deploy-pg-cluster.sh
+
+      - name: Wait for the cluster to converge
+        run: |
+          for i in $(seq 1 48); do
+            c=$(docker ps -q -f name=pgquorum_pg1 | head -1)
+            if [ -n "$c" ] && docker exec "$c" sh -c 'curl -s --max-time 3 localhost:8008/cluster' \
+                 | grep -qE '"role": *"leader"'; then
+              echo "cluster converged"; exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::cluster did not converge"
+          docker stack services pgquorum || true
+          docker service ps pgquorum_pg1 --no-trunc || true
+          exit 1
+
+      - name: Verify cluster (etcd quorum + 1 leader / 2 replicas)
+        run: bash scripts/01-verify-pg-cluster.sh
+
+      - name: Automatic failover test
+        run: bash scripts/01-failover-test.sh
