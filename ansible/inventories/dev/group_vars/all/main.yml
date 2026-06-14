@@ -1,0 +1,33 @@
+---
+# Repo root, relative to ansible/playbooks/site.yml.
+project_root: "{{ playbook_dir }}/../.."
+
+# Overlay networks (cf. ARCHITECTURE.md section 3).
+overlay_networks:
+  - net_data
+  - net_proxy
+  - net_monitoring
+
+# Images built locally.
+patroni_image: pgquorum/patroni:16
+pgbouncer_image: pgquorum/pgbouncer:1
+
+# Swarm stacks (reuse the validated compose files).
+stacks:
+  pg_cluster:
+    name: pgquorum
+    file: swarm-stacks/pg-cluster.yml
+  proxy:
+    name: pgquorum-proxy
+    file: swarm-stacks/proxy.yml
+  monitoring:
+    name: pgquorum-monitoring
+    file: swarm-stacks/monitoring.yml
+
+# Docker secrets, sourced from the encrypted vault (see vault.yml.example).
+docker_secrets:
+  - { name: pg_superuser_password,   value: "{{ vault_pg_superuser_password }}" }
+  - { name: pg_replication_password, value: "{{ vault_pg_replication_password }}" }
+  - { name: pg_app_password,         value: "{{ vault_pg_app_password }}" }
+  - { name: pg_pgbouncer_password,   value: "{{ vault_pg_pgbouncer_password }}" }
+  - { name: grafana_admin_password,  value: "{{ vault_grafana_admin_password }}" }

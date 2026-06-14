@@ -1,0 +1,23 @@
+---
+# Deploy the etcd + Patroni stack and wait for a healthy cluster.
+
+- name: Deploy pg-cluster stack
+  ansible.builtin.command: >
+    docker stack deploy --detach=true
+    -c {{ project_root }}/{{ stacks.pg_cluster.file }} {{ stacks.pg_cluster.name }}
+  changed_when: false
+
+- name: Wait for a healthy cluster (1 leader + 2 replicas)
+  ansible.builtin.shell: |
+    set -o pipefail
+    c=$(docker ps -q -f name={{ stacks.pg_cluster.name }}_pg1 | head -1)
+    [ -z "$c" ] && exit 1
+    docker exec "$c" sh -c 'curl -s --max-time 3 localhost:8008/cluster' | python3 -c \
+      'import sys,json; d=json.load(sys.stdin); print(sum(m["role"]=="leader" for m in d["members"]), sum(m["role"]=="replica" for m in d["members"]))'
+  args:
+    executable: /bin/bash
+  register: cluster_health
+  changed_when: false
+  retries: 40
+  delay: 5
+  until: cluster_health.stdout == "1 2"

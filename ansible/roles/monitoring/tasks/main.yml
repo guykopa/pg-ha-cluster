@@ -1,0 +1,48 @@
+---
+# Provision the monitoring DB role and deploy the monitoring stack.
+
+- name: Find current leader
+  ansible.builtin.shell: |
+    for n in pg1 pg2 pg3; do
+      c=$(docker ps -q -f name={{ stacks.pg_cluster.name }}_$n | head -1)
+      [ -z "$c" ] && continue
+      docker exec "$c" sh -c 'curl -fsS -m3 localhost:8008/master >/dev/null 2>&1' && { echo "$n"; exit 0; }
+    done
+    exit 1
+  args:
+    executable: /bin/bash
+  register: pg_leader
+  changed_when: false
+  retries: 12
+  delay: 5
+  until: pg_leader.rc == 0
+
+- name: Provision monitoring role (pg_monitor)
+  ansible.builtin.shell: |
+    docker exec -i $(docker ps -q -f name={{ stacks.pg_cluster.name }}_{{ pg_leader.stdout }} | head -1) \
+      psql -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='monitoring') THEN
+        CREATE ROLE monitoring LOGIN PASSWORD '{{ vault_pg_monitoring_password }}';
+      ELSE
+        ALTER ROLE monitoring LOGIN PASSWORD '{{ vault_pg_monitoring_password }}';
+      END IF;
+    END
+    $$;
+    GRANT pg_monitor TO monitoring;
+    GRANT CONNECT ON DATABASE appdb TO monitoring;
+    SQL
+  args:
+    executable: /bin/bash
+  no_log: true
+  changed_when: true
+
+- name: Deploy monitoring stack
+  ansible.builtin.command: >
+    docker stack deploy --detach=true
+    -c {{ project_root }}/{{ stacks.monitoring.file }} {{ stacks.monitoring.name }}
+  environment:
+    MONITORING_PW: "{{ vault_pg_monitoring_password }}"
+  no_log: true
+  changed_when: false

@@ -1,0 +1,6 @@
+---
+# Optional: community.docker provides idempotent docker_* modules. These roles
+# use the docker CLI directly (no Python SDK required), so this is only needed
+# if you refactor the roles to use the modules.
+collections:
+  - name: community.docker

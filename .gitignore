@@ -9,6 +9,7 @@ secrets/
 *.retry
 ansible/**/vault.yml
 ansible/**/*.vault
+ansible/.vault_pass
 
 # Vagrant (multi-node target, if provisioned locally later)
 .vagrant/

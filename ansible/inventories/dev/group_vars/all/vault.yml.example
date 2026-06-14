@@ -1,0 +1,13 @@
+---
+# Template for the encrypted vault. To use:
+#   cp vault.yml.example vault.yml
+#   # edit real values, then:
+#   ansible-vault encrypt vault.yml
+# The real vault.yml is git-ignored; never commit plaintext secrets.
+vault_pg_superuser_password: "CHANGE_ME_superuser"
+vault_pg_replication_password: "CHANGE_ME_replication"
+vault_pg_app_password: "CHANGE_ME_app"
+vault_pg_pgbouncer_password: "CHANGE_ME_pgbouncer"
+vault_grafana_admin_password: "CHANGE_ME_grafana"
+# Used to interpolate the postgres-exporter DSN (not a docker secret).
+vault_pg_monitoring_password: "CHANGE_ME_monitoring"

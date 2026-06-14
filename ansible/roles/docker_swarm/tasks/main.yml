@@ -1,0 +1,21 @@
+---
+# Ensure a Docker Swarm is active and the overlay networks exist.
+
+- name: Get swarm state
+  ansible.builtin.command: "docker info --format '{% raw %}{{.Swarm.LocalNodeState}}{% endraw %}'"
+  register: swarm_state
+  changed_when: false
+
+- name: Initialise single-node swarm
+  ansible.builtin.command: docker swarm init
+  when: swarm_state.stdout != "active"
+
+- name: List existing networks
+  ansible.builtin.command: "docker network ls --format '{% raw %}{{.Name}}{% endraw %}'"
+  register: existing_networks
+  changed_when: false
+
+- name: Create overlay networks
+  ansible.builtin.command: "docker network create --driver overlay --attachable {{ item }}"
+  loop: "{{ overlay_networks }}"
+  when: item not in existing_networks.stdout_lines

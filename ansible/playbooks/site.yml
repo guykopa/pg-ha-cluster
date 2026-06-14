@@ -1,0 +1,15 @@
+---
+# pgquorum -- full provisioning playbook.
+# Reproduces the whole HA cluster (Phases 0-2 + 5) idempotently. On dev it
+# targets the local single-node swarm; the same roles apply to a 3-node target.
+- name: Provision pgquorum
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - role: docker_swarm   # swarm init + overlay networks
+    - role: secrets        # docker secrets from the vault
+    - role: images         # build patroni / pgbouncer images
+    - role: pg_cluster     # etcd + Patroni stack, wait for a healthy cluster
+    - role: proxy          # HAProxy + PgBouncer stack, app/db roles
+    - role: monitoring     # Prometheus/Grafana/Loki/Alertmanager stack

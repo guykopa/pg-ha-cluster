@@ -1,0 +1,21 @@
+---
+# Build the local images (BuildKit disabled to avoid the credential-helper
+# issue under WSL/Docker Desktop). Skipped if already present unless
+# force_rebuild=true.
+
+- name: List local images
+  ansible.builtin.command: "docker image ls --format '{% raw %}{{.Repository}}:{{.Tag}}{% endraw %}'"
+  register: local_images
+  changed_when: false
+
+- name: Build Patroni image
+  ansible.builtin.command: "docker build -t {{ patroni_image }} {{ project_root }}/docker/patroni"
+  environment:
+    DOCKER_BUILDKIT: "0"
+  when: patroni_image not in local_images.stdout_lines or (force_rebuild | default(false) | bool)
+
+- name: Build PgBouncer image
+  ansible.builtin.command: "docker build -t {{ pgbouncer_image }} {{ project_root }}/docker/pgbouncer"
+  environment:
+    DOCKER_BUILDKIT: "0"
+  when: pgbouncer_image not in local_images.stdout_lines or (force_rebuild | default(false) | bool)
