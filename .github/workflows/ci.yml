@@ -20,11 +20,12 @@ jobs:
 
       - name: Ansible syntax-check
         run: |
-          pipx install ansible-core
+          pipx install ansible-core || pipx upgrade ansible-core
           # ansible.cfg references a vault password file; a dummy is enough for
           # syntax-check (no vaulted vars are decrypted at this stage).
           echo dummy > ansible/.vault_pass
-          cd ansible && ansible-playbook --syntax-check playbooks/site.yml
+          cd ansible && ansible-playbook --syntax-check playbooks/site.yml \
+            -e ansible_roles_path=roles
 
       - name: Hadolint (Patroni)
         uses: hadolint/hadolint-action@v3.1.0

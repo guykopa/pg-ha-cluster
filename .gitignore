@@ -4,6 +4,7 @@
 
 # Generated dev credentials (docker secrets are the source of truth)
 secrets/
+!ansible/roles/secrets/
 
 # Ansible
 *.retry
